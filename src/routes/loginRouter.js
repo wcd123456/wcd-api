@@ -9,4 +9,4 @@ router.post('/forget', loginController.forget)
 router.post('/login', loginController.login)
 router.post('/reg', loginController.reg)
 
-export default router 
+export default router
