@@ -19,6 +19,7 @@
     "@koa/cors": "^3.0.0",
     "bcrypt": "^3.0.6",
     "bluebird": "^3.7.1",
+    "dayjs": "^1.9.7",
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.11.0",
     "koa-body": "^4.1.1",

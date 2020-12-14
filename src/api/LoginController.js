@@ -1,6 +1,6 @@
 import send from '@/config/MailConfig'
 import bcrypt from 'bcrypt'
-import moment from 'moment'
+import moment from 'dayjs'
 import jsonwebtoken from 'jsonwebtoken'
 import config from '@/config'
 import { checkCode } from '@/common/Utils'

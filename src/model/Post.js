@@ -1,5 +1,5 @@
 import mongoose from '@/config/DBHelpler'
-import moment from 'moment'
+import moment from 'dayjs'
 const Schema = mongoose.Schema
 
 const PostSchema = new Schema({
