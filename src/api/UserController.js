@@ -18,9 +18,7 @@ class UserController {
       // 有历史的签到数据
       // 判断用户上一次签到记录的created时间是否与今天相同
       // 如果当前时间的日期与用户上一次的签到日期相同，说明用户已经签到
-      const created = moment(record.created).format('YYYY-MM-DD')
-      const now = moment().format('YYYY-MM-DD')
-      if (created === now) {
+      if (moment(record.created).format('YYYY-MM-DD') === moment().format('YYYY-MM-DD')) {
         ctx.body = {
           code: 500,
           favs: user.favs,
@@ -36,7 +34,7 @@ class UserController {
         let fav = 0
         // 判断签到时间: 用户上一次的签到时间等于，当前时间的前一天，说明，用户在连续签到
         // 第n+1天签到的时候，需要与第n的天created比较
-        if (created === moment().subtract(1, 'days').format('YYYY-MM-DD')) {
+        if (moment(record.created).format('YYYY-MM-DD') === moment().subtract(1, 'days').format('YYYY-MM-DD')) {
           // 连续签到的积分获得逻辑
           count += 1
           if (count < 5) {

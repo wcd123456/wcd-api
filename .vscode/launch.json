@@ -11,7 +11,7 @@
       "runtimeExecutable": "npm",
       "restart": true,
       "console": "integratedTerminal",
-      "runtimeVersion": "12.16.1",
+      "runtimeVersion": "10.17.0",
       "runtimeArgs": [
         "run-script",
         "dev"
