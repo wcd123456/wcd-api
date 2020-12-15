@@ -5,10 +5,9 @@ import jsonwebtoken from 'jsonwebtoken'
 import config from '@/config'
 import { checkCode } from '@/common/Utils'
 import User from '@/model/User'
+import SignRecord from '../model/SignRecord'
 
 class LoginController {
-  // eslint-disable-next-line no-useless-constructor
-  constructor () { }
   async forget (ctx) {
     const { body } = ctx.request
     console.log(body)
@@ -44,18 +43,43 @@ class LoginController {
       // 验证用户账号密码是否正确
       let checkUserPasswd = false
       const user = await User.findOne({ username: body.username })
+      if (user === null) {
+        ctx.body = {
+          code: 404,
+          msg: '用户名或者密码错误'
+        }
+        return
+      }
       if (await bcrypt.compare(body.password, user.password)) {
         checkUserPasswd = true
       }
       // mongoDB查库
       if (checkUserPasswd) {
         // 验证通过，返回Token数据
-        console.log('Hello login')
-        const token = jsonwebtoken.sign({ _id: 'brian' }, config.JWT_SECRET, {
+        const userObj = user.toJSON()
+        const arr = ['password', 'username', 'roles']
+        arr.map((item) => {
+          delete userObj[item]
+        })
+        const token = jsonwebtoken.sign({ _id: userObj._id }, config.JWT_SECRET, {
           expiresIn: '1d'
         })
+        // 加入isSign属性
+        const signRecord = await SignRecord.findByUid(userObj._id)
+        if (signRecord !== null) {
+          if (moment(signRecord.created).format('YYYY-MM-DD') === moment().format('YYYY-MM-DD')) {
+            userObj.isSign = true
+          } else {
+            userObj.isSign = false
+          }
+          userObj.lastSign = signRecord.created
+        } else {
+          // 用户无签到记录
+          userObj.isSign = false
+        }
         ctx.body = {
           code: 200,
+          data: userObj,
           token: token
         }
       } else {

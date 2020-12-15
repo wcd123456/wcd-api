@@ -1,10 +1,7 @@
-
 import svgCaptcha from 'svg-captcha'
 import { setValue } from '@/config/RedisConfig'
 
 class PublicController {
-  // eslint-disable-next-line no-useless-constructor
-  constructor () { }
   async getCaptcha (ctx) {
     const body = ctx.request.query
     const newCaptca = svgCaptcha.create({

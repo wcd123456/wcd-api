@@ -11,7 +11,11 @@
       "runtimeExecutable": "npm",
       "restart": true,
       "console": "integratedTerminal",
-      "runtimeArgs": ["run-script", "dev"],
+      "runtimeVersion": "12.16.1",
+      "runtimeArgs": [
+        "run-script",
+        "dev"
+      ],
       "port": 9229
     },
     {
@@ -23,7 +27,10 @@
       "restart": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "runtimeArgs": ["--exec", "babel-node"]
+      "runtimeArgs": [
+        "--exec",
+        "babel-node"
+      ]
     }
   ]
 }
