@@ -6,6 +6,6 @@ const router = new Router()
 router.prefix('/content')
 
 // 图片上传
-router.post('/uploadImg', contentController.uploadImg)
+router.post('/upload', contentController.uploadImg)
 
 export default router
