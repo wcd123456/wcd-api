@@ -2,6 +2,7 @@ import svgCaptcha from 'svg-captcha'
 import { setValue } from '@/config/RedisConfig'
 
 class PublicController {
+  // 获取图片验证码
   async getCaptcha (ctx) {
     const body = ctx.request.query
     const newCaptca = svgCaptcha.create({
