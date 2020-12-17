@@ -23,7 +23,16 @@ const jwt = JWT({ secret: config.JWT_SECRET }).unless({ path: [/^\/public/, /^\/
  * 使用koa-compose 集成中间件
  */
 const middleware = compose([
-  koaBody(),
+  koaBody({
+    multipart: true, // 是否支持文件上传，默认false
+    formidable: {
+      keepExtensions: true, // 是否保留后缀
+      maxFiledsSize: 5 * 1024 * 1024// 上传图片大小,最大5M
+    },
+    onError: (err) => {
+      console.log('🚀 ~ file: index.js ~ line 33 ~ err', err)
+    }
+  }),
   statics(path.join(__dirname, '../public')),
   cors(),
   jsonutil({ pretty: false, param: 'pretty' }),

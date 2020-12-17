@@ -1,6 +1,13 @@
 import Post from '../model/Post'
 import Links from '../model/Links'
-
+import fs from 'fs'
+import { v4 as uuidv4 } from 'uuid'
+import moment from 'dayjs'
+import config from '@/config'
+// method1
+// import { dirExists } from '@/common/Utils'
+// method2
+import mkdir from 'make-dir'
 class ContentController {
   // 获取文章列表
   async getPostList (ctx) {
@@ -56,6 +63,52 @@ class ContentController {
     ctx.body = {
       code: 200,
       data: result
+    }
+  }
+
+  // 上传图片
+  async uploadImg (ctx) {
+    const file = ctx.request.files.file
+    // 图片名称，图片格式，图片存储位置，返回前台可以读取路径
+    const ext = file.name.split('.').pop()// 获取文件后缀
+    const dir = `${config.uploadPath}/${moment().format('YYYYMMDD')}`
+    // 判断路径是否存在，不存在则创建
+    await mkdir(dir)
+    // 存储文件到指定的路径
+    // 给文件一个唯一的名称
+    const picname = uuidv4()
+    const destPath = `${dir}/${picname}.${ext}`
+    // 一次读取1k
+    // const reader = fs.createReadStream(file.path, { highWaterMark: 1 * 1024 })
+    // 默认读取64k
+    const reader = fs.createReadStream(file.path)
+    const upStream = fs.createWriteStream(destPath)
+    const filePath = `/${moment().format('YYYYMMDD')}/${picname}.${ext}`
+    // method1适合简单的小文件上传
+    reader.pipe(upStream)
+
+    // method2适合大文件上传
+    // 读取文件长度
+    // const stat = fs.statSync(file.path)
+    // console.log('🚀 ~ file: ContentController.js ~ line 87 ~ ContentController ~ uploadImg ~ stat', stat.size)
+    // let totalLenght = 0
+    // reader.on('data', (chunk) => {
+    //   totalLenght += chunk.length
+    //   console.log('🚀 ~ file: ContentController.js ~ line 89 ~ ContentController ~ uploadImg ~ totalLenght', totalLenght)
+    //   if (upStream.write(chunk) === false) {
+    //     reader.pause()
+    //   }
+    // })
+    // reader.on('drain', () => {
+    //   reader.resume()
+    // })
+    // reader.on('end', () => {
+    //   upStream.end()
+    // })
+    ctx.body = {
+      code: 200,
+      msg: '图片上传成功',
+      data: filePath
     }
   }
 }

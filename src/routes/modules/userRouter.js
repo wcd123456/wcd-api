@@ -14,4 +14,7 @@ router.post('/basic', userController.updateUserInfo)
 // 更新用户的账号
 router.get('/updatename', userController.updateUsername)
 
+// 修改密码
+router.post('/change-password', userController.changePasswd)
+
 export default router
