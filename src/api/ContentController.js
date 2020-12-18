@@ -4,6 +4,8 @@ import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import moment from 'dayjs'
 import config from '@/config'
+import { checkCode, getJWTPayload } from '@/common/Utils'
+import User from '@/model/User'
 // method1
 // import { dirExists } from '@/common/Utils'
 // method2
@@ -109,6 +111,43 @@ class ContentController {
       code: 200,
       msg: '图片上传成功',
       data: filePath
+    }
+  }
+
+  // 发布新帖
+  async addPost (ctx) {
+    const { body } = ctx.request
+    const sid = body.sid
+    const code = body.code
+    // 验证图片验证码时效性，正确性
+    const result = await checkCode(sid, code)
+    if (result) {
+      const obj = await getJWTPayload(ctx.header.authorization)
+      // 判断用户的积分是否》fav，否则，提示用户积分不足发帖
+      // 用户积分足够时候，新建post
+      const user = await User.findOne({ _id: obj._id })
+      if (user.favs < body.fav) {
+        ctx.body = {
+          code: 501, msg: '积分不足'
+        }
+        return false
+      } else {
+        await User.updateOne({ _id: obj._id }, { $inc: { favs: -body.fav } })
+      }
+      const newPost = new Post(body)
+      newPost.uid = obj._id
+      const result = await newPost.save()
+      ctx.body = {
+        code: 200,
+        msg: '成功保存文章',
+        data: result
+      }
+    } else {
+      // 图片验证码验证失败
+      ctx.body = {
+        code: 500,
+        msg: '图片验证码验证失败'
+      }
     }
   }
 }
