@@ -60,6 +60,12 @@ PostSchema.statics = {
       title: 1
     }).sort({ answer: -1 })
       .limit(15)
+  },
+  findByTid: function (id) {
+    return this.findOne({ _id: id }).populate({
+      path: 'uid',
+      select: 'name pic isVip _id'
+    })
   }
 }
 

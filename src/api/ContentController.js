@@ -150,6 +150,26 @@ class ContentController {
       }
     }
   }
+
+  // 获取文章详情
+  async getPostDetail (ctx) {
+    const params = ctx.query
+    if (!params.tid) {
+      ctx.body = {
+        code: 500,
+        msg: '文章id为空'
+      }
+      return
+    }
+    const post = await Post.findByTid(params.tid)
+    // const post = await Post.findOne({ _id: params.tid })
+    // const result = rename(post.toJSON(), 'uid', 'user')
+    ctx.body = {
+      code: 200,
+      data: post,
+      msg: '查询文章详情成功'
+    }
+  }
 }
 
 export default new ContentController()

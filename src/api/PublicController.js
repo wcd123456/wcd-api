@@ -4,7 +4,7 @@ import { setValue } from '@/config/RedisConfig'
 class PublicController {
   // 获取图片验证码
   async getCaptcha (ctx) {
-    const body = ctx.request.query
+    const body = ctx.query
     const newCaptca = svgCaptcha.create({
       size: 4,
       ignoreChars: '0o1il',

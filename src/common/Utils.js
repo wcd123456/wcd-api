@@ -58,8 +58,17 @@ const dirExists = async (dir) => {
     return result
   } else { return false }
 }
+
+const rename = (obj, key, newKey) => {
+  if (Object.keys(obj).indexOf(key) !== -1) {
+    obj[newKey] = obj[key]
+    delete obj[key]
+  }
+  return obj
+}
 export {
   checkCode,
   getJWTPayload,
-  dirExists
+  dirExists,
+  rename
 }
