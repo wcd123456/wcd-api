@@ -27,7 +27,7 @@ const middleware = compose([
     multipart: true, // 是否支持文件上传，默认false
     formidable: {
       keepExtensions: true, // 是否保留后缀
-      maxFiledsSize: 5 * 1024 * 1024// 上传图片大小,最大5M
+      maxFiledsSize: 5 * 1024 * 1024// 上传附件大小,最大5M
     },
     onError: (err) => {
       console.log('🚀 ~ file: index.js ~ line 33 ~ err', err)

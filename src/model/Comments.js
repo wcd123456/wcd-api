@@ -8,10 +8,10 @@ const CommentsSchema = new Schema({
   cuid: { type: String, ref: 'users' },
   content: { type: String },
   created: { type: Date },
-  hands: { type: Number, default: 0 },
+  hands: { type: Number, default: 0 }, // 点赞数量
   status: { type: String, default: '1' },
   isRead: { type: String, default: '0' },
-  isBest: { type: String, default: '0' }// 是否采纳
+  isBest: { type: String, default: '0' }// 是否采纳0-否，1-是
 })
 
 CommentsSchema.pre('save', function (next) {
