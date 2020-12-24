@@ -26,8 +26,12 @@ class CommentsController {
     const page = params.page ? params.page : 0
     const limit = params.limit ? parseInt(params.limit) : 10
     let result = await Comments.getCommentsList(tid, page, limit)
+
     // 判断用户是否登录，已登录的用户采取判断点赞信息
-    const obj = await getJWTPayload(ctx.header.authorization)
+    let obj = {}
+    if (typeof ctx.header.authorization !== 'undefined') {
+      obj = await getJWTPayload(ctx.header.authorization)
+    }
     if (typeof obj._id !== 'undefined') {
       result = result.map(item => item.toJSON())
       // result.forEach(async (item) => {
@@ -85,10 +89,19 @@ class CommentsController {
     const obj = await getJWTPayload(ctx.header.authorization)
     newComment.cuid = obj._id
     const comment = await newComment.save()
-    ctx.body = {
-      code: 200,
-      data: comment,
-      msg: '评论成功'
+    // 评论计数
+    const result2 = await Post.updateOne({ _id: body.tid }, { $inc: { answer: 1 } })
+    if (comment._id && result2.ok === 1) {
+      ctx.body = {
+        code: 200,
+        data: comment,
+        msg: '评论成功'
+      }
+    } else {
+      ctx.body = {
+        code: 200,
+        msg: '评论失败'
+      }
     }
   }
 
@@ -159,13 +172,6 @@ class CommentsController {
 
   async setHands (ctx) {
     const obj = await getJWTPayload(ctx.header.authorization)
-    if (typeof obj === 'undefined' && obj._id === '') {
-      ctx.body = {
-        code: 500,
-        msg: '用户未登陆或者用户未授权'
-      }
-    }
-
     const params = ctx.query
     // 判断用户是否已经点赞
     const tmp = await CommentsHands.find({ cid: params.cid, uid: obj._id })

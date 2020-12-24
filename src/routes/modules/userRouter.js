@@ -17,4 +17,10 @@ router.get('/updatename', userController.updateUsername)
 // 修改密码
 router.post('/change-password', userController.changePasswd)
 
+// 设置收藏
+router.get('/set-collect', userController.setCollect)
+
+// 获取收藏列表
+// router.get('/get-collect', userController.getCollect)
+
 export default router

@@ -9,5 +9,7 @@ router.prefix('/content')
 router.post('/upload', contentController.uploadImg)
 // 发布新帖
 router.post('/add', contentController.addPost)
+// 发布新帖
+router.post('/update', contentController.updatePost)
 
 export default router

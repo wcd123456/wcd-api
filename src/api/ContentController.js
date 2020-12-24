@@ -10,6 +10,7 @@ import User from '@/model/User'
 // import { dirExists } from '@/common/Utils'
 // method2
 import mkdir from 'make-dir'
+import UserCollect from '@/model/UserCollect'
 class ContentController {
   // 获取文章列表
   async getPostList (ctx) {
@@ -151,6 +152,47 @@ class ContentController {
     }
   }
 
+  // 更新帖子
+  async updatePost (ctx) {
+    const { body } = ctx.request
+    const sid = body.sid
+    const code = body.code
+    // 验证图片验证码时效性，正确性
+    const result = await checkCode(sid, code)
+    if (result) {
+      const obj = await getJWTPayload(ctx.header.authorization)
+      const post = await Post.findOne({ _id: body.tid })
+      // 判断帖子作者是否为本人
+      // 判断特兹是否结帖
+      if (post.uid === obj._id && post.isEnd === '0') {
+        const result = await Post.updateOne({ _id: body.tid }, body)
+        if (result.ok === 1) {
+          ctx.body = {
+            code: 200,
+            msg: '更新成功',
+            data: result
+          }
+        } else {
+          ctx.body = {
+            code: 500,
+            msg: '更新失败'
+          }
+        }
+      } else {
+        ctx.body = {
+          code: 500,
+          msg: '没有操作权限'
+        }
+      }
+    } else {
+    // 图片验证码验证失败
+      ctx.body = {
+        code: 500,
+        msg: '图片验证码验证失败'
+      }
+    }
+  }
+
   // 获取文章详情
   async getPostDetail (ctx) {
     const params = ctx.query
@@ -162,13 +204,36 @@ class ContentController {
       return
     }
     const post = await Post.findByTid(params.tid)
+    let isFav = 0
+    // 判断用户是否传递authorization的数据，即是否登录
+    if (typeof ctx.header.authorization !== 'undefined' && ctx.header.authorization !== '') {
+      const obj = await getJWTPayload(ctx.header.authorization)
+      const userCollect = await UserCollect.findOne({ uid: obj._id, tid: params.tid })
+      if (userCollect && userCollect.tid) {
+        isFav = 1
+      }
+    }
+    const newPost = post.toJSON()
+    newPost.isFav = isFav
+
+    // 更新文章阅读记录
+    const result = await Post.updateOne({ _id: params.tid }, {
+      $inc: { reads: 1 }
+    })
+    if (newPost._id && result.ok === 1) {
+      ctx.body = {
+        code: 200,
+        data: newPost,
+        msg: '查询文章详情成功'
+      }
+    } else {
+      ctx.body = {
+        code: 500,
+        msg: '获取文章详情失败'
+      }
+    }
     // const post = await Post.findOne({ _id: params.tid })
     // const result = rename(post.toJSON(), 'uid', 'user')
-    ctx.body = {
-      code: 200,
-      data: post,
-      msg: '查询文章详情成功'
-    }
   }
 }
 
