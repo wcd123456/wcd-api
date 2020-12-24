@@ -1,4 +1,5 @@
 import Comments from '../model/Comments'
+import CommentsHands from '../model/CommentsHands'
 import Post from '../model/Post'
 import User from '../model/User'
 import { checkCode } from '@/common/Utils'
@@ -24,7 +25,31 @@ class CommentsController {
     const tid = params.tid
     const page = params.page ? params.page : 0
     const limit = params.limit ? parseInt(params.limit) : 10
-    const result = await Comments.getCommentsList(tid, page, limit)
+    let result = await Comments.getCommentsList(tid, page, limit)
+    // 判断用户是否登录，已登录的用户采取判断点赞信息
+    const obj = await getJWTPayload(ctx.header.authorization)
+    if (typeof obj._id !== 'undefined') {
+      result = result.map(item => item.toJSON())
+      // result.forEach(async (item) => {
+      //   item.handed = '0'
+      //   const commentsHands = await CommentsHands.findOne({ cid: item._id })
+      //   if (commentsHands && commentsHands.cid) {
+      //     if (commentsHands.uid === obj._id) {
+      //       item.handed = '1'
+      //     }
+      //   }
+      // })
+      for (let i = 0; i < result.length; i++) {
+        let item = result[i]
+        item.handed = '0'
+        const commentsHands = await CommentsHands.findOne({ cid: item._id, uid: obj._id })
+        if (commentsHands && commentsHands.cid) {
+          if (commentsHands.uid === obj._id) {
+            item.handed = '1'
+          }
+        }
+      }
+    }
     const total = await Comments.queryCount(tid)
     ctx.body = {
       code: 200,
@@ -88,13 +113,13 @@ class CommentsController {
   async setBest (ctx) {
     // 对用户的权限进行判断
     const obj = await getJWTPayload(ctx.header.authorization)
-    if (typeof obj === 'undefined' && obj._id === '') {
-      ctx.body = {
-        code: 500,
-        msg: '用户未登陆或者用户未授权'
-      }
-      return
-    }
+    // if (typeof obj === 'undefined' && obj._id === '') {
+    //   ctx.body = {
+    //     code: 500,
+    //     msg: '用户未登陆或者用户未授权'
+    //   }
+    //   return
+    // }
     const params = ctx.query
     const post = await Post.findOne({ _id: params.tid })
     if (post.uid === obj._id && post.isEnd === '0') {
@@ -128,6 +153,43 @@ class CommentsController {
       ctx.body = {
         code: 500,
         msg: '帖子已经结贴，无法重复设置'
+      }
+    }
+  }
+
+  async setHands (ctx) {
+    const obj = await getJWTPayload(ctx.header.authorization)
+    if (typeof obj === 'undefined' && obj._id === '') {
+      ctx.body = {
+        code: 500,
+        msg: '用户未登陆或者用户未授权'
+      }
+    }
+
+    const params = ctx.query
+    // 判断用户是否已经点赞
+    const tmp = await CommentsHands.find({ cid: params.cid, uid: obj._id })
+    if (tmp.length > 0) {
+      ctx.body = {
+        code: 500,
+        msg: '你已经点赞，请勿重复点赞'
+      }
+      return
+    }
+    // 新增一条点赞记录
+    const newHands = new CommentsHands({ cid: params.cid, uid: obj._id })
+    const data = await newHands.save()
+    const result = await Comments.updateOne({ _id: params.cid }, { $inc: { hands: 1 } })
+    if (result.ok === 1) {
+      ctx.body = {
+        code: 200,
+        msg: '点赞成功',
+        data: data
+      }
+    } else {
+      ctx.body = {
+        code: 500,
+        msg: '保存点赞记录失败'
       }
     }
   }

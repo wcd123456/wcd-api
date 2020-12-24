@@ -24,8 +24,8 @@ CommentsSchema.post('save', function (error, doc, next) {
 })
 
 CommentsSchema.statics = {
-  findByTid: function (id) {
-    return this.find({ tid: id })
+  findByCid: function (id) {
+    return this.find({ cid: id })
   }
 }
 
