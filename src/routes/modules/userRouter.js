@@ -30,7 +30,7 @@ router.get('/delete-post', contentController.deletePostByUid)
 // 获取历史消息
 router.get('/getmsg', userController.getMsg)
 
-// 设置历史消息
+// 获取历史消息
 router.get('/setmsg', userController.setMsg)
 
 export default router

@@ -6,13 +6,13 @@ class WebSocketServer {
   constructor (config = {}) {
     const defaultConfig = {
       port: 3001,
-      timeInterval: 30 * 1000,
+      timeInterval: 5 * 1000,
       isAuth: true
     }
     // 最终配置
     const finalConfig = { ...defaultConfig, ...config }
-    this.wss = {}// 所有客户端
-    this.interval = finalConfig.timeInterval
+    this.wss = {}
+    this.timeInterval = finalConfig.timeInterval
     this.isAuth = finalConfig.isAuth
     this.port = finalConfig.port
     this.options = config.options || {}
@@ -22,18 +22,20 @@ class WebSocketServer {
   init () {
     this.wss = new WebSocket.Server({ port: this.port, ...this.options })
 
-    // 心跳检测
-    // this.heartbeat()
-
     // 连接信息
     this.wss.on('connection', (ws) => {
-      console.log('new client in')
+      // 连接上之后随即发送一次心跳检测
       ws.isAlive = true
-
+      ws.send(JSON.stringify({
+        event: 'heartbeat',
+        message: 'ping'
+      }))
       ws.on('message', (msg) => this.onMessage(ws, msg))
-
       ws.on('close', () => this.onClose(ws))
     })
+
+    // 心跳检测
+    this.heartbeat()
   }
 
   onMessage (ws, msg) {
@@ -42,7 +44,6 @@ class WebSocketServer {
     // 消息发送
     const msgObj = JSON.parse(msg)
     const events = {
-      // 用户鉴权 -> token -> _id
       auth: async () => {
         try {
           const obj = await getJWTPayload(msgObj.message)
@@ -62,24 +63,22 @@ class WebSocketServer {
           }))
         }
       },
-      // 心跳检查
       heartbeat: () => {
         if (msgObj.message === 'pong') {
           ws.isAlive = true
         }
       },
-      // 消息发送
       message: () => {
         // 鉴权拦截
-        if (!ws.isAuth && this.isAuth) {
-          return
-        }
+        // if (!ws.isAuth && this.isAuth) {
+        //   return
+        // }
         // 消息广播
-        this.wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN && client._id === ws._id) {
-            this.send(msg)
-          }
-        })
+        // this.wss.clients.forEach((client) => {
+        //   if (client.readyState === WebSocket.OPEN && client._id === ws._id) {
+        //     this.send(msg)
+        //   }
+        // })
       }
     }
     events[msgObj.event]()
@@ -103,15 +102,16 @@ class WebSocketServer {
     })
   }
 
-  onClose (ws) { }
+  onClose (ws) {
+
+  }
 
   // 心跳检测
   heartbeat () {
     clearInterval(this.interval)
     this.interval = setInterval(() => {
       this.wss.clients.forEach((ws) => {
-        if (!ws.isAlive && ws.roomid) {
-          delete ws.roomid
+        if (!ws.isAlive) {
           return ws.terminate()
         }
         // 主动发送心跳检测请求

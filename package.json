@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@koa/cors": "^3.0.0",
-    "bcrypt": "^5.0.0",
+    "bcrypt": "^3.0.7",
     "bluebird": "^3.7.2",
     "dayjs": "^1.8.18",
     "jsonwebtoken": "^8.5.1",

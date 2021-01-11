@@ -58,7 +58,6 @@ CommentsSchema.statics = {
       .limit(limit)
       .sort({ created: -1 })
   },
-  // 第二种方法
   getMsgList: function (id, page, limit) {
     return this.find({
       uid: id,
@@ -85,7 +84,6 @@ CommentsSchema.statics = {
   getTotal: function (id) {
     return this.find({ uid: id, isRead: '0', status: '1' }).countDocuments()
   }
-  // 第一种方法
   // getMsgList: function (id, page, limit) {
   //   return this.aggregate([
   //     {
