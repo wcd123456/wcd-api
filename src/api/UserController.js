@@ -4,11 +4,13 @@ import User from '../model/User'
 import UserCollect from '../model/UserCollect'
 import moment from 'dayjs'
 import send from '@/config/MailConfig'
-import { v4 as uuidv4 } from 'uuid'
+import uuid from 'uuid/v4'
 import jwt from 'jsonwebtoken'
 import config from '@/config'
 import { setValue, getValue } from '@/config/RedisConfig'
 import bcrypt from 'bcrypt'
+import Comments from '../model/Comments'
+
 class UserController {
   // 用户签到接口
   async userSign (ctx) {
@@ -139,11 +141,11 @@ class UserController {
         }
         return
       }
-      const key = uuidv4()
+      const key = uuid()
       setValue(key, jwt.sign({ _id: obj._id }, config.JWT_SECRET, {
         expiresIn: '30m'
       }))
-      const result = await send({
+      await send({
         type: 'email',
         data: {
           key: key,
@@ -156,8 +158,9 @@ class UserController {
         email: user.username,
         user: user.name
       })
-      if (result) { msg = '更新基本资料成功，账号修改需要邮件确认，请查收邮件！' }
+      msg = '更新基本资料成功，账号修改需要邮件确认，请查收邮件！'
     }
+
     const arr = ['username', 'mobile', 'password']
     arr.map((item) => { delete body[item] })
     const result = await User.updateOne({ _id: obj._id }, body)
@@ -197,9 +200,10 @@ class UserController {
     const user = await User.findOne({ _id: obj._id })
     if (await bcrypt.compare(body.oldpwd, user.password)) {
       const newpasswd = await bcrypt.hash(body.newpwd, 5)
-      const result = await User.updateOne({ _id: obj._id }, { $set: { password: newpasswd } })
-      console.log('🚀 ~ file: UserController.js ~ line 200 ~ UserController ~ changePasswd ~ result', result)
-
+      await User.updateOne(
+        { _id: obj._id },
+        { $set: { password: newpasswd } }
+      )
       ctx.body = {
         code: 200,
         msg: '更新密码成功'
@@ -207,7 +211,7 @@ class UserController {
     } else {
       ctx.body = {
         code: 500,
-        msg: '更新密码错误，请检查'
+        msg: '更新密码错误，请检查！'
       }
     }
   }
@@ -217,7 +221,7 @@ class UserController {
     const params = ctx.query
     const obj = await getJWTPayload(ctx.header.authorization)
     if (parseInt(params.isFav)) {
-      // 说明用户已经收藏帖子
+      // 说明用户已经收藏了帖子
       await UserCollect.deleteOne({ uid: obj._id, tid: params.tid })
       ctx.body = {
         code: 200,
@@ -235,6 +239,88 @@ class UserController {
           code: 200,
           data: result,
           msg: '收藏成功'
+        }
+      }
+    }
+  }
+
+  // 获取收藏列表
+  async getCollectByUid (ctx) {
+    const params = ctx.query
+    const obj = await getJWTPayload(ctx.header.authorization)
+    const result = await UserCollect.getListByUid(obj._id, params.page, params.limit ? parseInt(params.limit) : 10)
+    const total = await UserCollect.countByUid(obj._id)
+    if (result.length > 0) {
+      ctx.body = {
+        code: 200,
+        data: result,
+        total,
+        msg: '查询列表成功'
+      }
+    } else {
+      ctx.body = {
+        code: 500,
+        msg: '查询列表失败'
+      }
+    }
+  }
+
+  // 获取用户基本信息
+  async getBasicInfo (ctx) {
+    const params = ctx.query
+    const uid = params.uid
+    let user = await User.findByID(uid)
+    // 取得用户的签到记录 有没有 > today 0:00:00
+    user = user.toJSON()
+    const date = moment().format('YYYY-MM-DD')
+    const result = await SignRecord.findOne({ uid: uid, created: { $gte: date + ' 00:00:00' } })
+    if (result && result.uid) {
+      user.isSign = true
+    } else {
+      user.isSign = false
+    }
+    ctx.body = {
+      code: 200,
+      data: user,
+      msg: '查询成功！'
+    }
+  }
+
+  // 获取历史消息
+  // 记录评论之后，给作者发送消息
+  async getMsg (ctx) {
+    const params = ctx.query
+    const page = params.page ? params.page : 0
+    const limit = params.limit ? parseInt(params.limit) : 0
+    // 方法一： 嵌套查询 -> aggregate
+    // 方法二： 通过冗余换时间
+    const obj = await getJWTPayload(ctx.header.authorization)
+    const num = await Comments.getTotal(obj._id)
+    const result = await Comments.getMsgList(obj._id, page, limit)
+
+    ctx.body = {
+      code: 200,
+      data: result,
+      total: num
+    }
+  }
+
+  // 设置已读消息
+  async setMsg (ctx) {
+    const params = ctx.query
+    if (params.id) {
+      const result = await Comments.updateOne({ _id: params.id }, { isRead: '1' })
+      if (result.ok === 1) {
+        ctx.body = {
+          code: 200
+        }
+      }
+    } else {
+      const obj = await getJWTPayload(ctx.header.authorization)
+      const result = await Comments.updateMany({ uid: obj._id }, { isRead: '1' })
+      if (result.ok === 1) {
+        ctx.body = {
+          code: 200
         }
       }
     }

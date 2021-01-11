@@ -5,11 +5,13 @@ const router = new Router()
 
 router.prefix('/content')
 
-// 图片上传
+// 上传图片
 router.post('/upload', contentController.uploadImg)
-// 发布新帖
+
+// 发表新贴
 router.post('/add', contentController.addPost)
-// 发布新帖
+
+// 更新帖子
 router.post('/update', contentController.updatePost)
 
 export default router

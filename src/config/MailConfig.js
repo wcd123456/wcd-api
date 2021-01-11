@@ -34,7 +34,7 @@ async function send (sendInfo) {
     from: '"认证邮件" <imoocbrian@qq.com>', // sender address
     to: sendInfo.email, // list of receivers
     subject:
-      sendInfo.user !== '' && sendInfo.type !== 'email'
+      sendInfo.user !== '' && sendInfo.type !=='email'
         ? `你好开发者，${sendInfo.user}！《慕课网前端全栈实践》注册码`
         : '《慕课网前端全栈实践》确认修改邮件链接', // Subject line
     text: `您在《慕课网前端全栈实践》课程中注册，您的邀请码是${

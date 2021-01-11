@@ -11,9 +11,10 @@
       "runtimeExecutable": "npm",
       "restart": true,
       "console": "integratedTerminal",
+      // "runtimeVersion": "12.14.0",
       "runtimeArgs": [
         "run-script",
-        "dev"
+        "start"
       ],
       "port": 9229
     },

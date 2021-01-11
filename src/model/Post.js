@@ -27,6 +27,12 @@ const PostSchema = new Schema({
   }
 })
 
+PostSchema.virtual('user', {
+  ref: 'users',
+  localField: 'uid',
+  foreignField: '_id'
+})
+
 PostSchema.pre('save', function (next) {
   this.created = moment().format('YYYY-MM-DD HH:mm:ss')
   next()
@@ -66,6 +72,15 @@ PostSchema.statics = {
       path: 'uid',
       select: 'name pic isVip _id'
     })
+  },
+  getListByUid: function (id, page, limit) {
+    return this.find({ uid: id })
+      .skip(page * limit)
+      .limit(limit)
+      .sort({ created: -1 })
+  },
+  countByUid: function (id) {
+    return this.find({ uid: id }).countDocuments()
   }
 }
 

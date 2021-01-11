@@ -3,65 +3,32 @@ import bcrypt from 'bcrypt'
 import moment from 'dayjs'
 import jsonwebtoken from 'jsonwebtoken'
 import config from '@/config'
-import { checkCode, getJWTPayload } from '@/common/Utils'
+import { checkCode } from '@/common/Utils'
 import User from '@/model/User'
-import { v4 as uuidv4 } from 'uuid'
 import SignRecord from '../model/SignRecord'
-import { getValue, setValue } from '@/config/RedisConfig'
-
+import { getValue } from '@/config/RedisConfig'
+import { getJWTPayload } from '../common/Utils'
 class LoginController {
   // 忘记密码，发送邮件
-
   async forget (ctx) {
     const { body } = ctx.request
-    const sid = body.sid
-    const code = body.code
-    const username = body.username
-    /**
-    * 1. 验证验证码是否过期或是否正确
-    * 2. 以邮箱为字段查询数据库，如果数据库中存在该邮箱，返回用户基本信息，如果不存在向前端返回错误
-    * 3. 发送验证邮件
-    */
-    if (await checkCode(sid, code)) {
-      if (!username) {
-        ctx.body = {
-          code: 500,
-          msg: '用户信息输入不正确'
-        }
-        return
-      }
-      const user = await User.findOne({ username: username })
-      if (user && user.password) {
-        // 系统中存在该用户
-        const key = uuidv4()
-        setValue(key, jsonwebtoken.sign({ _id: user._id }, config.JWT_SECRET, { expiresIn: '30m' }), 30 * 60)
-        const result = await send({
-          type: 'reset',
-          data: {
-            key: key
-          },
-          expire: moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
-          email: body.username,
-          user: user.nickName
-        })
-        if (result) {
-          ctx.body = {
-            status: 200,
-            data: result,
-            msg: '邮件发送成功'
-          }
-        }
-      } else {
-        ctx.body = {
-          code: 500,
-          msg: '该邮箱还没有注册，是否使用该邮箱注册'
-        }
-      }
-    } else {
+    try {
+      // body.username -> database -> email
+      const result = await send({
+        code: '1234',
+        expire: moment()
+          .add(30, 'minutes')
+          .format('YYYY-MM-DD HH:mm:ss'),
+        email: body.username,
+        user: 'Brian'
+      })
       ctx.body = {
-        status: 401,
-        msg: ['图片验证码不正确']
+        code: 200,
+        data: result,
+        msg: '邮件发送成功'
       }
+    } catch (e) {
+      console.log(e)
     }
   }
 

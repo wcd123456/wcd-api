@@ -24,16 +24,16 @@ UserCollectSchema.post('save', function (error, doc, next) {
 })
 
 UserCollectSchema.statics = {
-  // 查询总数
-  queryCollectCount: function (options) {
-    return this.find(options).countDocuments()
-  },
   // 查询特定用户的收藏数据
-  queryCollectByUserId: function (uid, limit, page) {
-    return this.find({ uid: uid })
-      .limit(limit)
+  getListByUid: function (id, page, limit) {
+    return this.find({ uid: id })
       .skip(limit * page)
-      .sort(['created', -1])
+      .limit(limit)
+      .sort({ created: -1 })
+  },
+  // 查询总数
+  countByUid: function (id) {
+    return this.find({ uid: id }).countDocuments()
   }
 }
 
