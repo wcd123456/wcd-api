@@ -59,7 +59,7 @@ class LoginController {
       if (checkUserPasswd) {
         // 验证通过，返回Token数据
         const userObj = user.toJSON()
-        const arr = ['password', 'username', 'roles']
+        const arr = ['password', 'username']
         arr.map((item) => {
           delete userObj[item]
         })

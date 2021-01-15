@@ -268,7 +268,8 @@ class UserController {
   // 获取用户基本信息
   async getBasicInfo (ctx) {
     const params = ctx.query
-    const uid = params.uid
+    const obj = await getJWTPayload(ctx.header.authorization)
+    const uid = params.uid || obj._id
     let user = await User.findByID(uid)
     // 取得用户的签到记录 有没有 > today 0:00:00
     user = user.toJSON()

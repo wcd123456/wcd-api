@@ -56,6 +56,9 @@ PostSchema.statics = {
         select: 'name isVip pic'
       })
   },
+  countList: function (options) {
+    return this.find(options).countDocuments()
+  },
   getTopWeek: function () {
     return this.find({
       created: {

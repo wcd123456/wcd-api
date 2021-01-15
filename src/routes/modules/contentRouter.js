@@ -14,4 +14,9 @@ router.post('/add', contentController.addPost)
 // 更新帖子
 router.post('/update', contentController.updatePost)
 
+router.post('/update-id', contentController.updatePostByTid)
+
+// 删除帖子
+router.get('/delete', contentController.deletePost)
+
 export default router
