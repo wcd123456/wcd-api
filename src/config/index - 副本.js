@@ -1,8 +1,8 @@
 import path from 'path'
 
-const DB_URL = 'mongodb://sa:sa@192.168.1.109:27017/test'
+const DB_URL = 'mongodb://test:123456@192.168.184.140:27017/testdb'
 const REDIS = {
-  host: '192.168.1.109',
+  host: '192.168.184.140',
   port: 15001,
   password: '123456'
 }

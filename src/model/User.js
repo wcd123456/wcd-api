@@ -41,11 +41,23 @@ UserSchema.post('save', function (error, doc, next) {
 
 UserSchema.statics = {
   findByID: function (id) {
-    return this.findOne({ _id: id }, {
-      password: 0,
-      username: 0,
-      mobile: 0
-    })
+    return this.findOne(
+      { _id: id },
+      {
+        password: 0,
+        username: 0,
+        mobile: 0
+      }
+    )
+  },
+  getList: function (options, sort, page, limit) {
+    return this.find({ ...options }, { password: 0, mobile: 0 })
+      .sort({ [sort]: -1 })
+      .skip(page * limit)
+      .limit(limit)
+  },
+  countList: function (options) {
+    return this.find(options).countDocuments()
   }
 }
 
